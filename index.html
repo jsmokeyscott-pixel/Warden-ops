@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>WARDEN Ops · Zero Trust for AI Agents</title>
+<meta name="description" content="WARDEN: a defensive zero trust reference model for AI agents, grounded in DARPA AIxCC lessons learned, DARPA DICE, NIST CAISI and DoD zero trust.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🔒</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Saira+Stencil+One&family=Barlow+Condensed:wght@600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#e9e6e3;--grid:rgba(90,40,30,.07);--surface:#faf8f6;--surface2:#ece7e3;--ink:#221a17;--muted:#62574f;--line:#d2c8c0;
+  --accent:#7a2418;--accent-ink:#faf8f6;--accent-soft:#f3dcd6;--amber:#9a6410;--amber-soft:#f3e4c4;
+  --steel:#2f4a63;--steel-soft:#dde7f0;
+  --go:#2b7a34;--go-soft:#d6ecd5;--nogo:#ad2b22;--nogo-soft:#f5d9d5;
+  --fd:'Barlow Condensed','Arial Narrow',Arial,sans-serif;--fs:'Saira Stencil One','Barlow Condensed',Impact,sans-serif;
+  --fb:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--fm:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141010;--grid:rgba(220,140,120,.045);--surface:#1d1716;--surface2:#28201e;--ink:#ece4e0;--muted:#ab9d96;--line:#3d302c;
+  --accent:#f0857a;--accent-ink:#141010;--accent-soft:#3b1f1b;--amber:#e3ac52;--amber-soft:#3a2f1a;
+  --steel:#9fc0dd;--steel-soft:#1e2c3a;
+  --go:#73c87b;--go-soft:#1e3420;--nogo:#f0857a;--nogo-soft:#3b201c;color-scheme:dark;}}
+:root[data-theme="dark"]{
+  --bg:#141010;--grid:rgba(220,140,120,.045);--surface:#1d1716;--surface2:#28201e;--ink:#ece4e0;--muted:#ab9d96;--line:#3d302c;
+  --accent:#f0857a;--accent-ink:#141010;--accent-soft:#3b1f1b;--amber:#e3ac52;--amber-soft:#3a2f1a;
+  --steel:#9fc0dd;--steel-soft:#1e2c3a;
+  --go:#73c87b;--go-soft:#1e3420;--nogo:#f0857a;--nogo-soft:#3b201c;color-scheme:dark;}
+*,*::before,*::after{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:16px/1.55 var(--fb);background-color:var(--bg);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;
+  padding-bottom:env(safe-area-inset-bottom,0)}
+header.top{position:sticky;top:0;z-index:20;background:var(--surface);border-bottom:2px solid var(--accent);padding-top:env(safe-area-inset-top,0)}
+.topin{max-width:1040px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:8px 16px}
+.brand{font-family:var(--fs);font-size:22px;color:var(--accent);background:none;border:0;padding:0;cursor:pointer;white-space:nowrap}
+nav{display:flex;gap:2px;overflow-x:auto;margin-left:auto;scrollbar-width:none}
+nav::-webkit-scrollbar{display:none}
+nav button{font:600 16px var(--fd);letter-spacing:.02em;color:var(--muted);background:none;border:0;border-bottom:3px solid transparent;padding:8px 10px 5px;cursor:pointer;white-space:nowrap}
+nav button[aria-current="page"]{color:var(--ink);border-bottom-color:var(--amber)}
+nav button:hover{color:var(--ink)}
+.theme{background:none;border:1.5px solid var(--line);color:var(--ink);border-radius:6px;width:36px;height:36px;cursor:pointer;font-size:16px;flex:0 0 36px}
+@media (max-width:640px){.topin{flex-wrap:wrap;padding-bottom:0}nav{order:3;margin-left:-6px;width:calc(100% + 12px)}.theme{margin-left:auto}}
+main{max-width:1040px;margin:0 auto;padding:22px 16px 72px}
+h1,h2,h3{font-family:var(--fd);font-weight:700;line-height:1.1;margin:0 0 .4em}
+h2{font-size:28px}h3{font-size:21px;margin-top:1em}
+.dim{color:var(--muted)}.small{font-size:13px}
+a{color:var(--steel)}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+.hero{padding:14px 0 6px}
+.stencil{font-family:var(--fs);font-weight:400;font-size:clamp(52px,12.5vw,112px);line-height:.92;color:var(--accent);margin:0 0 10px}
+.tagline{font:700 clamp(20px,3.4vw,28px) var(--fd);margin:0 0 10px}
+.lead{max-width:66ch;font-size:17px;margin:0 0 14px}
+.badge{display:inline-block;font:600 12px var(--fm);letter-spacing:.04em;padding:5px 10px;border:1.5px solid var(--go);color:var(--go);border-radius:3px;margin-bottom:12px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.row.between{justify-content:space-between}
+.btn{font:600 15px var(--fb);padding:10px 16px;border-radius:6px;border:1.5px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;min-height:44px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn:disabled{opacity:.45;cursor:default}
+.panel{background:var(--surface);border:1.5px solid var(--line);border-radius:6px;padding:20px;margin-bottom:14px}
+@media (max-width:520px){.panel{padding:14px}}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:14px 0}
+.qcard{text-align:left;background:var(--surface);border:1.5px solid var(--line);border-left:5px solid var(--accent);border-radius:4px;padding:14px;cursor:pointer;color:var(--ink);font:inherit;display:flex;flex-direction:column;gap:4px}
+.qcard:hover{border-color:var(--accent)}
+.qcard b{font:700 21px var(--fd)}.qcard span{color:var(--muted);font-size:14px}
+.callout{background:var(--amber-soft);border-left:4px solid var(--amber);padding:10px 14px;border-radius:0 6px 6px 0;margin:14px 0;max-width:72ch}
+.phead{display:flex;align-items:baseline;gap:12px;border-bottom:2px solid var(--ink);margin:26px 0 12px;padding-bottom:4px}
+.phead h2{margin:0;font-size:26px}
+.tenets{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+.tenet{border:1.5px solid var(--line);border-top:4px solid var(--steel);border-radius:4px;padding:10px 14px;background:var(--bg)}
+.tenet b{font:700 18px var(--fd);display:block}
+.tenet span{font-size:14px;color:var(--muted)}
+/* pillars board */
+.board{display:grid;grid-template-columns:repeat(6,1fr);gap:6px}
+@media (max-width:760px){.board{grid-template-columns:repeat(3,1fr)}}
+.pil{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:4px;padding:12px 6px;text-align:center;cursor:pointer;color:var(--ink);font:inherit;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:120px;justify-content:center}
+.pil:hover{transform:translateY(-2px)}
+.pil .L{font:400 40px/1 var(--fs);color:var(--accent)}
+.pil b{font:700 15px/1.15 var(--fd);letter-spacing:.02em}
+.railbar{display:block;width:100%;margin-top:6px;border:1.5px dashed var(--steel);border-radius:4px;background:var(--steel-soft);color:var(--ink);padding:10px;text-align:center;cursor:pointer;font:600 15px var(--fb)}
+.railbar b{font:700 17px var(--fd);color:var(--steel)}
+/* stepper */
+.stepper{display:flex;gap:6px;margin:12px 0 14px;overflow-x:auto;scrollbar-width:none}
+.stepper::-webkit-scrollbar{display:none}
+.stepper button{flex:1 0 auto;display:flex;gap:8px;align-items:center;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;padding:8px 10px;cursor:pointer;color:var(--ink);font:inherit;min-height:52px}
+.stepper button[aria-selected="true"]{border-color:var(--accent);box-shadow:inset 0 -4px 0 var(--amber)}
+.stepper .ck{flex:0 0 28px;height:28px;border-radius:4px;display:grid;place-items:center;font:400 16px var(--fs);background:var(--accent);color:var(--accent-ink)}
+.stepper .ck.r{background:var(--steel)}
+.stepper b{font:600 14px var(--fb);white-space:nowrap}
+.chip{display:inline-block;font:600 12px/1 var(--fb);padding:5px 9px;border-radius:3px;margin:0 6px 6px 0;background:var(--surface2);color:var(--muted)}
+.chip.a{background:var(--accent-soft);color:var(--accent)}.chip.s{background:var(--steel-soft);color:var(--steel)}
+.ltitle{font-size:clamp(32px,5vw,46px);margin:8px 0 4px}
+.ltitle .L{font-family:var(--fs);font-weight:400;color:var(--accent)}
+.purpose{font-size:19px;max-width:64ch;border-left:4px solid var(--accent);padding-left:14px;margin:10px 0 16px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+@media (max-width:640px){.two{grid-template-columns:1fr}}
+.box{border:1.5px solid var(--line);border-radius:4px;padding:10px 14px;background:var(--bg)}
+.box.ctl{border-top:4px solid var(--go)}
+.box.fail{border-top:4px solid var(--nogo)}
+.box h4{margin:0 0 4px;font:700 17px var(--fd);letter-spacing:.03em}
+ul{margin:4px 0;padding-left:20px}li{margin:4px 0}
+.ev{background:var(--surface2);border-left:4px solid var(--amber);padding:12px 14px;border-radius:0 4px 4px 0;margin-top:12px}
+.ev b{font:700 15px var(--fd);letter-spacing:.04em;display:block;margin-bottom:2px;color:var(--amber)}
+.ev .src{font-size:13px;color:var(--muted);margin-top:6px}
+.dod{margin-top:12px;font-size:14px;color:var(--muted)}
+/* assess */
+.aq{border-bottom:1px solid var(--line);padding:14px 0}
+.aq:last-of-type{border-bottom:0}
+.aq h4{margin:0 0 8px;font:700 19px var(--fd)}
+.aq h4 .L{font-family:var(--fs);font-weight:400;color:var(--accent);margin-right:6px}
+.lv{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+@media (max-width:700px){.lv{grid-template-columns:1fr 1fr}}
+.lv label{display:flex;flex-direction:column;gap:2px;border:1.5px solid var(--line);border-radius:5px;padding:8px 10px;cursor:pointer;font-size:13px;background:var(--surface);min-height:84px}
+.lv label b{font:700 15px var(--fd);letter-spacing:.03em}
+.lv input{position:absolute;opacity:0;pointer-events:none}
+.lv label:has(input:checked){border-color:var(--accent);background:var(--accent-soft)}
+.lv label:has(input:focus-visible){outline:3px solid var(--amber)}
+.err{color:var(--nogo);font-size:14px;margin-top:8px;min-height:1.2em}
+.meter{display:grid;grid-template-columns:150px 1fr 70px;gap:10px;align-items:center;margin:6px 0}
+@media (max-width:520px){.meter{grid-template-columns:110px 1fr 60px}}
+.meter .bar{height:14px;background:var(--surface2);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.meter .bar i{display:block;height:100%}
+.meter span{font:600 13px var(--fm);text-align:right}
+/* drill */
+.progress{display:flex;align-items:center;gap:12px;margin:4px 0 16px;max-width:560px}
+.pbar{flex:1;height:10px;background:var(--surface2);border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.pbar>i{display:block;height:100%;background:var(--accent)}
+.verdict{border-radius:6px;padding:18px;margin-top:6px}
+.verdict.go{background:var(--go-soft);border:2px solid var(--go)}.verdict.nogo{background:var(--nogo-soft);border:2px solid var(--nogo)}.verdict.hold{background:var(--amber-soft);border:2px solid var(--amber)}
+.verdict strong{font:400 clamp(34px,7vw,52px)/1 var(--fs);display:block;margin-bottom:8px}
+.verdict.go strong{color:var(--go)}.verdict.nogo strong{color:var(--nogo)}.verdict.hold strong{color:var(--amber)}
+.rlabel{font:600 13px var(--fm);color:var(--muted)}
+.scen{font-size:19px;max-width:64ch;border-left:4px solid var(--accent);padding-left:14px;margin:8px 0}
+.choices{display:grid;gap:8px;margin-top:12px}
+.choices button{text-align:left;font:16px var(--fb);padding:12px 14px;border:1.5px solid var(--line);border-radius:5px;background:var(--surface);color:var(--ink);cursor:pointer}
+.choices button:hover:not(:disabled){border-color:var(--accent)}
+.choices button.right{border-color:var(--go);background:var(--go-soft)}.choices button.wrong{border-color:var(--nogo);background:var(--nogo-soft)}
+.fb{margin-top:14px;padding:12px 14px;border-radius:0 6px 6px 0}
+.fb.go{background:var(--go-soft);border-left:5px solid var(--go)}.fb.nogo{background:var(--nogo-soft);border-left:5px solid var(--nogo)}
+.fb strong{font:700 19px var(--fd);letter-spacing:.03em}
+.fb.go strong{color:var(--go)}.fb.nogo strong{color:var(--nogo)}
+.dots{display:flex;gap:5px;flex-wrap:wrap}.dot{width:14px;height:14px;border-radius:50%;border:2px solid var(--line)}
+.dot.g{background:var(--go);border-color:var(--go)}.dot.n{background:var(--nogo);border-color:var(--nogo)}.dot.cur{border-color:var(--amber)}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:700 15px var(--fd);letter-spacing:.04em;color:var(--muted)}
+.tw{overflow-x:auto}
+.srcs li{margin:10px 0}
+.srcs small{display:block;color:var(--muted)}
+[hidden]{display:none!important}
+@media print{header.top,.noprint{display:none!important}body{background:#fff}.panel{break-inside:avoid}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <button class="brand" onclick="go('home')" aria-label="WARDEN Ops dashboard">WARDEN Ops</button>
+  <nav aria-label="Main">
+    <button data-v="home">Dashboard</button>
+    <button data-v="pillars">Pillars</button>
+    <button data-v="assess">Assess</button>
+    <button data-v="drill">Drill</button>
+    <button data-v="sources">Sources</button>
+  </nav>
+  <button class="theme" onclick="toggleTheme()" aria-label="Toggle light or dark mode">◐</button>
+</div></header>
+<main id="app"></main>
+
+<script>
+const P=[
+ {k:"W",name:"Workload Identity",short:"Identity",
+  principle:"Every agent gets its own verifiable identity, a “digital birth certificate” tied to a named human owner, a declared purpose and an expiration. No shared accounts. No anonymous agents.",
+  why:"Zero trust starts with knowing exactly who, or what, is asking. Once an agent can request, store and change data, it needs an identity just like a user or a device. Otherwise nothing downstream (access, logging, revocation) has anything to bind to.",
+  ctl:["Unique cryptographic identity per agent instance","Named human owner and sponsor on record","Declared purpose and scope bound to the identity","Short-lived credentials that expire automatically","One-action revocation: the kill switch lives at the identity layer","Agent identity stamped on every log entry"],
+  fail:["Shared service accounts or API keys across agents","Long-lived static credentials","Orphaned agents with no accountable owner","Logs that can't tell an agent from a human"],
+  ev:"The IC CIO said at DoDIIS 2026 that AI agents need a “digital birth certificate,” like people and devices already have, and that this identity sets what an agent is permitted to do. He also noted that the government lacks a unified identity system for non-human users across agencies.",
+  src:"Breaking Defense, Aug 2026",dod:"User · Application & Workload",
+  lv:["Agents run under shared or human accounts","Some agents have their own accounts, with static keys","Every agent has a unique identity, owner and expiring credentials","Identity with attestation of purpose and owner; revocation is instant and tested"]},
+ {k:"A",name:"Access: Least & Just-in-Time",short:"Access",
+  principle:"Grant access per task, per time window and per attribute. An agent gets exactly what the current task needs, for as long as the task lasts, and nothing persists afterward.",
+  why:"Traditional zero trust means least privilege. Agents push the other way: they're often given whatever they need to work on their own. Just-in-time, task-scoped entitlements resolve that tension, giving the agent autonomy inside the task without standing power outside it.",
+  ctl:["Task-scoped, time-boxed access tokens","Attribute-based decisions: who, what, where, when, why","Separate tiers for read, write and irreversible actions","Irreversible or high-consequence actions need human approval (see HALO Layer 5)","Entitlements expire when the task ends","Scheduled access reviews for every agent"],
+  fail:["Standing admin rights","A “god-mode” agent with access to everything","Privilege creep: permissions pile up and never get removed","An agent that can grant itself access"],
+  ev:"The IC CIO described a fundamental conflict: zero trust traditionally means least privilege or no access, while agents are often given what they need to operate independently. The IC is moving to identity and policy enforcement based on fine-grained attributes. Separately, CISA and partner guidance flags privilege creep from over-permissioned agents.",
+  src:"Breaking Defense, Aug 2026 · CISA & partners agentic AI guidance, 2026",dod:"User · Automation & Orchestration",
+  lv:["Agents hold broad standing permissions","Role-based access, rarely reviewed","Task-scoped access that expires; irreversible actions gated","Attribute-based, just-in-time access evaluated on every action"]},
+ {k:"R",name:"Runtime Containment",short:"Containment",
+  principle:"Assume any agent can fail, loop or be compromised, and design so that when it does, the blast radius is small and the mission keeps running.",
+  why:"Autonomous systems fail in ways nobody predicted: runaway loops, resource exhaustion, crashes partway through a task. Containment turns one agent's failure into a contained event instead of an outage for the whole mission.",
+  ctl:["Sandboxed execution environments","Resource quotas: compute, memory, disk, API calls, spend","Rate limits on actions and tool calls","Segmentation: an agent can reach only what its task touches","Circuit breakers and graceful degradation","Health checks and restart from a known-good state"],
+  fail:["Runaway loops that consume every resource","One agent's crash takes the whole mission down","Unrestricted network egress","No ceiling on spend or tool calls"],
+  ev:"In DARPA's AI Cyber Challenge, stability and accuracy decided the rankings. The winner's lead came mostly from staying available while others stalled. One finalist system crashed from resource exhaustion after generating more than 1,200 proof-of-vulnerability inputs for a single challenge, and large builds caused disk exhaustion and out-of-memory failures.",
+  src:"SoK: DARPA's AIxCC, USENIX Security 2026",dod:"Device · Application & Workload · Network & Environment",
+  lv:["Agents run directly on production hosts","Some isolation; no resource limits","Sandboxed, with quotas, rate limits and segmentation","Automatic circuit breakers, self-healing and tested failure drills"]},
+ {k:"D",name:"Data & Context Integrity",short:"Context",
+  principle:"Keep trusted instructions separate from untrusted data. Everything an agent reads (documents, web pages, email, tool output, peer messages) is data, never a command.",
+  why:"Agents act on what they read. If content can sneak instructions in, an attacker never has to touch the agent's credentials, because the agent uses its own legitimate access on the attacker's behalf. That makes this an integrity problem in the agent's control plane, not just a content-filtering issue.",
+  ctl:["Provenance labels on every input (trusted or untrusted)","Instructions accepted only from authenticated principals","Tool, web and document content handled strictly as data","Long-term memory writes reviewed, attributed and set to expire","Output checks for sensitive data before it leaves","Need-to-know enforced at the data level"],
+  fail:["Agent follows instructions it found inside a document or email","Long-term memory poisoned by outside content","Sensitive data leaves through the agent's output","No record of where a piece of context came from"],
+  ev:"NIST's CAISI describes agent hijacking as indirect prompt injection: malicious instructions planted in data the agent ingests. It calls this an age-old security problem that arises when a system lacks a clear separation between trusted internal instructions and untrusted external data. Large-scale government red-team testing found at least one successful hijacking against every frontier model tested.",
+  src:"NIST CAISI technical blog · CSA research note on the CAISI agenda, Apr 2026",dod:"Data",
+  lv:["Agents treat all text they read as potential instructions","Basic input filtering only","Provenance labeling; instructions only from authenticated sources","Enforced instruction/data separation, memory governance and data-level DLP"]},
+ {k:"E",name:"Evidence-Based Verification",short:"Verification",
+  principle:"Never trust an agent's output on its word. Require evidence in proportion to the consequence, and have someone other than the producer check it.",
+  why:"AI is fast and often right, and it's also confidently wrong in ways that pass automated checks. “The tests pass” isn't the same as “it's correct.” Zero trust applies to outputs as much as to identities.",
+  ctl:["Require proof artifacts (tests, reproductions, diffs), not claims","An independent verifier, separate from the producer","Diverse methods: AI plus traditional tools","Human review scaled to consequence","Confidence levels required on findings","Accuracy tracked per agent over time"],
+  fail:["“Tests pass” treated as “correct”","The same model grades its own work","Confident wrong answers accepted at face value","No feedback loop on agent accuracy"],
+  ev:"The AIxCC analysis found that 37.7% to 45.6% of baseline AI-generated patches that passed automated checks failed manual review. They fixed symptoms instead of root causes, broke functionality or introduced new bugs. Teams that relied on LLM judgment to validate alerts made more errors than teams that required proof. Traditional tools still beat AI at finding common bugs, while AI did better on complex reasoning, so the two work best together.",
+  src:"SoK: DARPA's AIxCC, USENIX Security 2026 · Georgia Tech, Sep 2026",dod:"Application & Workload · Visibility & Analytics",
+  lv:["Agent outputs accepted as-is","Automated tests only","Proof artifacts plus independent verification for high-consequence work","Diverse verification, human review by consequence tier, accuracy tracked over time"]},
+ {k:"N",name:"No Transitive Trust",short:"Agent-to-Agent",
+  principle:"Agents verify each other like strangers. Trust never passes along a chain of agents, and a delegated task can never carry more authority than the human who started it.",
+  why:"Multi-agent systems bring lateral movement back. If agents assume their peers are behaving, compromising one agent compromises everything that trusts it. The swarm has to be robust to any single member failing or going rogue.",
+  ctl:["Mutual authentication on every agent-to-agent call","Signed, validated messages between agents","Peer output treated as untrusted input (see D)","Quorum or cross-checks for critical results","Ability to quarantine a compromised agent and route around it","Delegation chains inherit the originating human's limits and never expand them"],
+  fail:["One compromised agent poisons the whole team","Delegation quietly escalates privilege","No way to isolate a single agent","Agents accept peer output because it's “on our team”"],
+  ev:"Research cited by GDIT found that AI agents tend to trust one another: exploit one agent, and the others assume it's still within its guardrails, which recreates the lateral movement zero trust was built to stop. DARPA's DICE program calls for multi-agent coordination that stays robust when individual agents fail or are compromised, including against “rogue” agents.",
+  src:"GDIT perspective on the National Cyber Strategy · DARPA DICE special notice & Q&A, 2026",dod:"Network & Environment · Automation & Orchestration",
+  lv:["Agents implicitly trust each other","Agents authenticate, but trust peer outputs","Mutual auth, signed messages and validation of peer output","Quorum on critical results, automated quarantine and bounded delegation"]}
+];
+const RAILS=[
+ {k:"M",name:"Continuous Monitoring",tag:"Assume breach",
+  principle:"Watch everything, tie every event to an identity, and expect to find compromise, quickly.",
+  ctl:["Full telemetry tied to agent identity","Behavioral baselines per agent","Anomaly detection measured in minutes, not days","Automated containment on detection","Logs that can rebuild who did what and why"],
+  ev:"SOCOM leadership said cyber defense can't depend on people manually reviewing logs in a crisis, and set a goal of detecting compromise within minutes. In AIxCC, incomplete telemetry limited how well researchers could attribute results after the fact.",
+  src:"Breaking Defense, Aug 2026 · SoK: DARPA's AIxCC",dod:"Visibility & Analytics",
+  lv:["Little or no agent-level logging","Logs exist but aren't reviewed","Identity-linked telemetry with alerting","Behavioral analytics with automated response and full reconstruction"]},
+ {k:"H",name:"Human Authority",tag:"Human-in-the-loop",
+  principle:"Humans own the high-consequence and irreversible decisions. Automate the routine work, never the accountability, and design for human imperfection.",
+  ctl:["Consequence tiers that define what needs a human","Approval gates before irreversible actions (HALO Layer 5)","A cease-fire any authorized human can call","Fatigue-aware design: fewer, clearer decisions for people","Humans verify AI fixes before anything critical ships"],
+  ev:"The AIxCC researchers concluded that AI can play an important role in cybersecurity, but human experts are still needed to verify the safety of AI-generated fixes. SOCOM leadership warned that adversaries will target human error and fatigue, and said systems should be designed for human imperfection rather than trying to engineer it away.",
+  src:"Georgia Tech, Sep 2026 · Breaking Defense, Aug 2026",dod:"Cross-cutting (governance)",
+  lv:["Agents act with no approval gates","Ad hoc human review","Defined consequence tiers with approval gates","Tested cease-fire, consequence tiers and workload-aware human review"]}
+];
+const ALL=[...P,...RAILS];
+const LV=["Traditional","Initial","Advanced","Optimal"];
+const D=[
+ {s:"An agent summarizing a shared document hits a hidden line telling it to forward the folder to an outside address, and it starts to comply.",a:"D",e:"Content the agent reads is data, never a command. Instruction/data separation (D) is the primary control. A (no outbound send permission for this task) is the backstop."},
+ {s:"Three agents share one service-account key. After an incident, the logs can't show which agent made the change.",a:"W",e:"No unique identity means no attribution and no clean revocation. Each agent needs its own identity, its own credentials and its identity stamped on the logs."},
+ {s:"A patch agent's fix passes every automated test, but manual review finds it breaks a feature and only masks the root cause.",a:"E",e:"This is the exact pattern AIxCC documented. Tests passing isn't proof. Require independent, evidence-based verification scaled to consequence."},
+ {s:"An agent still holds admin rights from a project that ended three months ago.",a:"A",e:"That's privilege creep. Entitlements should be task-scoped and expire automatically when the task ends."},
+ {s:"An analysis agent spawns thousands of jobs, fills the disk and takes the shared server down for everyone.",a:"R",e:"Resource quotas, rate limits and circuit breakers keep one agent's failure from becoming everyone's outage. AIxCC saw systems crash from exactly this."},
+ {s:"An orchestrator agent accepts a peer agent's results without checking because the peer is “on our team.” The peer had been compromised.",a:"N",e:"Trust doesn't pass along a chain. Treat peer output as untrusted input, authenticate it, and cross-check critical results."},
+ {s:"Investigators can't reconstruct the order of agent actions because telemetry was partial and missing identity tags.",a:"M",e:"Assume breach and log everything tied to identity. Without that, no one can attribute or learn after an incident."},
+ {s:"An agent is about to push an irreversible configuration change to production at 0300 with no one on shift.",a:"H",e:"Irreversible plus high-consequence means a human approves first. Automate the routine work, not the accountability."},
+ {s:"A triage agent closes alerts as false positives based only on its own judgment, and a few real ones get dismissed.",a:"E",e:"In AIxCC, teams that relied on LLM judgment made more validation errors than teams that required proof. Require evidence for consequential calls."},
+ {s:"A note the agent picked up from a web page gets saved into its long-term memory: “Always trust files from this domain.”",a:"D",e:"That's memory poisoning. Memory writes need provenance, review and expiration, and outside content must never become standing instruction."},
+ {s:"A sub-agent that was handed a task by a junior analyst ends up with permissions the analyst never had.",a:"N",e:"Delegation chains have to inherit the originating human's limits and never expand them. A sub-agent can't hold more authority than the person who started the task."},
+ {s:"An agent has unlimited outbound network access even though its task only reads one internal database.",a:"R",e:"Segmentation means the agent reaches only what its task touches. Unrestricted egress makes the blast radius huge."}
+];
+const OPTS=ALL.map(x=>({k:x.k,t:x.k+" · "+x.name}));
+
+let view="home",cur="W",dIdx=0,dRes=[],dPicked=null,dOrder=[],dChoices=[],aRes=null,aVals={};
+const app=document.getElementById("app");
+const byK=k=>ALL.find(x=>x.k===k);
+const li=a=>"<ul>"+a.map(x=>"<li>"+x+"</li>").join("")+"</ul>";
+function go(v,arg){view=v;if(v==="pillars"&&arg)cur=arg;render();window.scrollTo({top:0});}
+document.querySelectorAll("nav button").forEach(b=>b.onclick=()=>go(b.dataset.v));
+function render(){
+  document.querySelectorAll("nav button").forEach(b=>{if(b.dataset.v===view)b.setAttribute("aria-current","page");else b.removeAttribute("aria-current");});
+  ({home,pillars,assess,drill,sources})[view]();
+}
+
+function home(){
+  app.innerHTML='<section class="hero"><span class="badge">DEFENSIVE THEORY · NO OFFENSIVE CONTENT</span><h1 class="stencil">WARDEN</h1>'+
+  '<p class="tagline">Zero Trust for AI Agents</p>'+
+  '<p class="lead">A defensive reference model for running AI agents under zero trust. It\'s grounded in lessons learned from DARPA\'s AI Cyber Challenge, DARPA\'s DICE program, NIST CAISI agent-hijacking research and the DoD zero trust pillars. <b>Never trust the agent. Verify every identity, every action and every output.</b></p></section>'+
+  '<div class="cards noprint">'+
+   '<button class="qcard" onclick="go(\'pillars\',\'W\')"><b>Learn the pillars</b><span>Six pillars plus two rails, each grounded in evidence</span></button>'+
+   '<button class="qcard" onclick="go(\'assess\')"><b>Assess a system</b><span>Score an agent deployment from Traditional to Optimal</span></button>'+
+   '<button class="qcard" onclick="startDrill()"><b>Run the drill</b><span>12 defensive scenarios. Pick the pillar that stops it.</span></button>'+
+  '</div>'+
+  '<div class="phead"><h2>The model</h2><span class="dim small">Tap a pillar</span></div>'+
+  '<div class="panel"><div class="board">'+P.map(p=>'<button class="pil" onclick="go(\'pillars\',\''+p.k+'\')"><span class="L">'+p.k+'</span><b>'+p.name+'</b></button>').join("")+'</div>'+
+  RAILS.map(r=>'<button class="railbar" onclick="go(\'pillars\',\''+r.k+'\')"><b>'+r.k+' · '+r.name+'</b> — '+r.tag+' · runs across all pillars</button>').join("")+
+  '<div class="callout"><b>Core idea:</b> an AI agent is a new kind of identity that can act. Zero trust has to cover <i>who</i> the agent is, <i>what</i> it can reach, <i>where</i> it runs, <i>what</i> it reads, <i>whether</i> its output is true and <i>whom</i> it trusts, all under continuous monitoring and human authority.</div></div>'+
+  '<div class="phead"><h2>Zero trust tenets, agent edition</h2></div>'+
+  '<div class="tenets">'+
+   '<div class="tenet"><b>Never trust, always verify</b><span>Applies to agent identities, actions and outputs, not just users.</span></div>'+
+   '<div class="tenet"><b>Assume breach</b><span>Any agent can be hijacked through what it reads. Design for it.</span></div>'+
+   '<div class="tenet"><b>Least privilege, just-in-time</b><span>Autonomy inside the task, no standing power outside it.</span></div>'+
+   '<div class="tenet"><b>Data is never command</b><span>Untrusted content can’t steer the agent.</span></div>'+
+   '<div class="tenet"><b>Evidence over confidence</b><span>Proof scales with consequence. A confident answer can still be wrong.</span></div>'+
+  '</div>'+
+  '<div class="phead"><h2>Pairs with HALO</h2></div><div class="panel"><p style="margin:0">HALO answers <b>who decides</b>: the human-in-the-loop layers. WARDEN answers <b>how much to trust the agent</b>. Use HALO to set the authority structure and WARDEN to secure the agents working inside it. <a href="https://jsmokeyscott-pixel.github.io/halo-ops/">Open HALO Ops ↗</a></p></div>';
+}
+
+function pillars(){
+  const tabs=ALL.map(x=>'<button role="tab" aria-selected="'+(cur===x.k)+'" onclick="go(\'pillars\',\''+x.k+'\')"><span class="ck'+(RAILS.includes(x)?" r":"")+'">'+x.k+'</span><b>'+(x.short||x.name)+'</b></button>').join("");
+  const x=byK(cur),isRail=RAILS.includes(x),i=ALL.indexOf(x);
+  let body='<span class="chip '+(isRail?"s":"a")+'">'+(isRail?"Rail · cross-cutting":"Pillar "+(i+1)+" of 6")+'</span><span class="chip">DoD ZT: '+x.dod+'</span>'+
+   '<h2 class="ltitle"><span class="L">'+x.k+'</span> · '+x.name+'</h2><p class="purpose">'+x.principle+'</p>'+
+   (x.why?'<p style="max-width:68ch">'+x.why+'</p>':'')+
+   '<div class="two"><div class="box ctl"><h4>DEFENSIVE CONTROLS</h4>'+li(x.ctl)+'</div>'+
+   (x.fail?'<div class="box fail"><h4>WARNING SIGNS</h4>'+li(x.fail)+'</div>':'<div class="box"><h4>MATURITY TARGET</h4><p style="margin:4px 0">'+x.lv[3]+'</p></div>')+'</div>'+
+   '<div class="ev"><b>EVIDENCE & LESSONS LEARNED</b>'+x.ev+'<div class="src">Source: '+x.src+' · see the Sources tab</div></div>'+
+   '<div class="row between noprint">'+(i>0?'<button class="btn" onclick="go(\'pillars\',\''+ALL[i-1].k+'\')">← '+ALL[i-1].k+'</button>':'<span></span>')+
+   (i<ALL.length-1?'<button class="btn primary" onclick="go(\'pillars\',\''+ALL[i+1].k+'\')">'+ALL[i+1].k+' · '+ALL[i+1].name+' →</button>':'<button class="btn primary" onclick="go(\'assess\')">Assess a system →</button>')+'</div>';
+  app.innerHTML='<h2>Pillars & rails</h2><p class="dim" style="margin:0">W-A-R-D-E-N, plus Monitoring and Human Authority running across all six.</p><div class="stepper" role="tablist">'+tabs+'</div><div class="panel">'+body+'</div>';
+}
+
+function assess(){
+  if(aRes){showAssess();return;}
+  app.innerHTML='<h2>Maturity assessment</h2><p class="dim" style="max-width:68ch;margin:0 0 12px">Pick the level that best matches the AI agent deployment you\'re assessing, real or hypothetical. The levels follow the zero trust maturity naming (Traditional → Optimal). Answer all 8 to get a score.</p>'+
+  '<div class="panel">'+ALL.map(x=>'<div class="aq"><h4><span class="L">'+x.k+'</span>'+x.name+'</h4><div class="lv" role="radiogroup" aria-label="'+x.name+'">'+
+   x.lv.map((d,j)=>'<label><input type="radio" name="a'+x.k+'" value="'+j+'" '+(aVals[x.k]===j?"checked":"")+' onchange="aVals[\''+x.k+'\']='+j+';document.getElementById(\'aerr\').textContent=\'\'"><b>'+LV[j]+'</b>'+d+'</label>').join("")+'</div></div>').join("")+
+  '<div class="err" id="aerr" role="alert"></div><div class="row"><button class="btn primary" onclick="scoreAssess()">Score it</button><button class="btn" onclick="aVals={};render()">Clear</button></div></div>';
+}
+function scoreAssess(){
+  const miss=ALL.filter(x=>aVals[x.k]===undefined);
+  if(miss.length){document.getElementById("aerr").textContent="Answer every pillar first: "+miss.map(m=>m.k).join(", ")+" still open.";return;}
+  aRes=true;render();window.scrollTo({top:0});
+}
+function showAssess(){
+  const tot=ALL.reduce((s,x)=>s+aVals[x.k],0),pct=Math.round(tot/(ALL.length*3)*100);
+  const min=Math.min(...ALL.map(x=>aVals[x.k])),weak=ALL.filter(x=>aVals[x.k]===min);
+  const cls=pct>=67&&min>=2?"go":min===0?"nogo":"hold";
+  const head=cls==="go"?"GO":cls==="nogo"?"NO-GO":"HOLD";
+  const msg=cls==="go"?"Strong zero trust posture for AI agents. Keep testing it: run failure drills and verify that revocation works.":cls==="nogo"?"At least one pillar is still at Traditional. A single gap like that can undo the rest, so fix it before giving agents more autonomy.":"Partial posture. The basics are in place, but the gaps below leave real exposure. Prioritize them before you expand agent autonomy.";
+  const col=v=>v===3?"var(--go)":v===2?"var(--steel)":v===1?"var(--amber)":"var(--nogo)";
+  app.innerHTML='<h2>Assessment results</h2><div class="verdict '+cls+'"><strong>'+head+'</strong><p style="margin:0;font-size:18px">Overall '+pct+'%. '+msg+'</p></div>'+
+  '<div class="panel" style="margin-top:14px"><h3 style="margin-top:0">By pillar</h3>'+ALL.map(x=>'<div class="meter"><b style="font:700 16px var(--fd)">'+x.k+' · '+(x.short||x.name)+'</b><div class="bar"><i style="width:'+((aVals[x.k]+1)/4*100)+'%;background:'+col(aVals[x.k])+'"></i></div><span>'+LV[aVals[x.k]]+'</span></div>').join("")+
+  '<h3>Priority</h3>'+weak.map(w=>'<div class="box fail" style="margin-bottom:8px"><h4>'+w.k+' · '+w.name+' ('+LV[aVals[w.k]]+')</h4><p style="margin:4px 0">Next step: <b>'+w.lv[Math.min(3,aVals[w.k]+1)]+'</b></p><button class="btn" onclick="go(\'pillars\',\''+w.k+'\')">Open '+w.k+'</button></div>').join("")+
+  '<div class="row noprint"><button class="btn primary" onclick="aRes=null;render()">Edit answers</button><button class="btn" onclick="aRes=null;aVals={};render()">New assessment</button></div></div>';
+}
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function buildChoices(d){const wrong=shuffle(OPTS.filter(o=>o.k!==d.a)).slice(0,3);return shuffle([OPTS.find(o=>o.k===d.a),...wrong]);}
+function startDrill(){dOrder=shuffle(D.map((_,i)=>i));dIdx=0;dRes=[];dPicked=null;dChoices=buildChoices(D[dOrder[0]]);go("drill");}
+function drill(){
+  if(!dOrder.length){dOrder=shuffle(D.map((_,i)=>i));dChoices=buildChoices(D[dOrder[0]]);}
+  const dots='<div class="dots" aria-hidden="true">'+dOrder.map((_,i)=>'<i class="dot '+(dRes[i]===true?"g":dRes[i]===false?"n":i===dIdx?"cur":"")+'"></i>').join("")+'</div>';
+  if(dIdx>=dOrder.length){
+    const sc=dRes.filter(Boolean).length,pc=Math.round(sc/dOrder.length*100),pass=pc>=80;
+    app.innerHTML='<h2>Drill complete</h2>'+dots+'<div class="verdict '+(pass?"go":"nogo")+'" style="margin-top:14px"><strong>'+(pass?"GO":"NO-GO")+'</strong><p style="margin:0;font-size:18px">'+sc+' / '+dOrder.length+' correct ('+pc+'%). '+(pass?"Standard met (80%).":"Standard is 80%. Review the pillars and run it again.")+'</p></div>'+
+    '<div class="row"><button class="btn primary" onclick="startDrill()">Run it again</button><button class="btn" onclick="go(\'pillars\',\'W\')">Review pillars</button></div>';
+    return;
+  }
+  const d=D[dOrder[dIdx]];
+  app.innerHTML='<h2>Drill</h2><div class="row between" style="margin-top:0">'+dots+'<span class="small dim">'+(dIdx+1)+' / '+dOrder.length+'</span></div>'+
+  '<div class="panel" style="margin-top:12px"><div class="rlabel">SCENARIO · DEFENSIVE</div><p class="scen">'+d.s+'</p><p class="dim" style="margin:10px 0 0">Which pillar or rail is the primary control?</p>'+
+  '<div class="choices">'+dChoices.map((o,i)=>{let c="";if(dPicked!==null){if(o.k===d.a)c="right";else if(i===dPicked)c="wrong";}return '<button class="'+c+'" '+(dPicked!==null?"disabled":"")+' onclick="pick('+i+')">'+o.t+'</button>';}).join("")+'</div>'+
+  (dPicked!==null?'<div class="fb '+(dChoices[dPicked].k===d.a?"go":"nogo")+'" role="status"><strong>'+(dChoices[dPicked].k===d.a?"GO — correct.":"NO-GO — it\'s "+d.a+".")+'</strong> '+d.e+'</div><div class="row" style="justify-content:flex-end"><button class="btn primary" onclick="nextD()">'+(dIdx+1<dOrder.length?"Next scenario →":"See results →")+'</button></div>':'')+'</div>';
+}
+function pick(i){if(dPicked!==null)return;dPicked=i;dRes[dIdx]=(dChoices[i].k===D[dOrder[dIdx]].a);render();}
+function nextD(){dIdx++;dPicked=null;if(dIdx<dOrder.length)dChoices=buildChoices(D[dOrder[dIdx]]);render();}
+
+function sources(){
+  const S=[
+   ["SoK: DARPA's AI Cyber Challenge (AIxCC): Competition Design, Architectures, and Lessons Learned","https://arxiv.org/abs/2602.07666","Stability decided rankings; 37.7–45.6% of baseline AI patches failed manual review; LLM-judge vs. proof-based validation; resource-exhaustion failures; telemetry gaps. (R, E, M)"],
+   ["Georgia Tech: AI Cyber Challenge lessons at USENIX Security 2026","https://www.cc.gatech.edu/news/georgia-tech-researchers-share-ai-cyber-challenge-lessons-usenix-security-2026","AI and traditional tools have different strengths; human experts are still needed to verify AI fixes. (E, H)"],
+   ["DARPA DICE: Decentralized AI through Controlled Emergence (program Q&A)","https://www.darpa.mil/sites/default/files/attachment/2026-06/programs-dice-q-a.pdf","Multi-agent coordination robust to failure or compromise of individual agents and to rogue agents. (N)"],
+   ["NIST CAISI: Technical blog on strengthening AI agent hijacking evaluations","https://www.nist.gov/node/1872381","Agent hijacking as indirect prompt injection; root cause is no separation between trusted instructions and untrusted data. (D)"],
+   ["CSA research note: CAISI's AI Agent Security Agenda (Apr 2026)","https://labs.cloudsecurityalliance.org/wp-content/uploads/2026/04/CSA_research_note_nist-caisi-ai-agent-security-agenda-2026_20260414-csa-styled.pdf","Summary of large-scale government hijacking tests: at least one success against every frontier model tested. (D)"],
+   ["Breaking Defense: Agentic AI turning Zero Trust ‘on its head’ (Aug 2026)","https://breakingdefense.com/2026/08/agentic-ai-turning-zero-trust-cybersecurity-on-its-head/","IC CIO on digital birth certificates and attribute-based enforcement; SOCOM on minutes-to-detect and designing for human imperfection. (W, A, M, H)"],
+   ["GDIT: National cyber strategy doubles down on zero trust, AI","https://www.gdit.com/perspectives/latest/national-cyber-strategy-doubles-down-on-zero-trust-ai-and-protecting/","Agents' bias to trust one another enables lateral movement. (N)"],
+   ["DoD CIO: Zero Trust Overlays","https://dodcio.defense.gov/Portals/0/Documents/Library/ZeroTrustOverlays.pdf","DoD zero trust pillars and tenets used for the pillar mapping."],
+   ["CRS In Focus IF13151: Agentic Artificial Intelligence and Cyberattacks (Jul 2026)","https://www.everycrsreport.com/files/2026-07-06_IF13151_497c5e97f35d00235c284eb2322b4e1e4aba99c4.pdf","Congressional background on agentic AI in military cyber contexts, including attacks that target the agents themselves."]
+  ];
+  app.innerHTML='<h2>Sources & mapping</h2><div class="row noprint" style="margin-top:0"><button class="btn" onclick="window.print()">Print / save as PDF</button></div>'+
+  '<div class="phead"><h2>Mapped to DoD zero trust pillars</h2></div><div class="panel tw"><table><thead><tr><th>WARDEN</th><th>DOD ZT PILLAR(S)</th><th>CORE QUESTION</th></tr></thead><tbody>'+
+  ALL.map(x=>'<tr><td><b>'+x.k+'</b> · '+x.name+'</td><td>'+x.dod+'</td><td>'+({W:"Who is this agent?",A:"What may it touch, right now?",R:"How far can damage spread?",D:"Can what it reads steer it?",E:"Is its output actually right?",N:"Should it trust that other agent?",M:"Would we see it go wrong?",H:"Who owns the call?"})[x.k]+'</td></tr>').join("")+'</tbody></table></div>'+
+  '<div class="phead"><h2>Sources</h2></div><div class="panel"><ol class="srcs">'+S.map(s=>'<li><a href="'+s[1]+'">'+s[0]+'</a><small>'+s[2]+'</small></li>').join("")+'</ol>'+
+  '<p class="dim small" style="margin:12px 0 0">WARDEN is an original conceptual model that synthesizes these public sources. It is not an official DARPA, NIST or DoD framework. It covers defensive architecture only.</p></div>';
+}
+
+function toggleTheme(){
+  const r=document.documentElement;
+  const dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme=dark?"light":"dark";
+  try{localStorage.setItem("warden-theme",r.dataset.theme);}catch(e){}
+}
+try{const t=localStorage.getItem("warden-theme");if(t)document.documentElement.dataset.theme=t;}catch(e){}
+render();
+</script>
+</body>
+</html>
