@@ -4,7 +4,7 @@
 
 > Never trust the agent. Verify every identity, every action and every output.
 
-**Live site:** https://jsmokeyscott-pixel.github.io/warden-ops/
+**Live site:** https://jsmokeyscott-pixel.github.io/Warden-ops/
 
 **Scope:** defensive theory and architecture only. It contains no offensive techniques, tooling or attack instructions.
 
